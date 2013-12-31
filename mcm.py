@@ -6,7 +6,11 @@ from gi.repository import Gtk, Gio, GLib
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 
-PROFILE = 'Mai'
+def get_current_profile():
+    setting = Gio.Settings.new("org.compiz")
+    return setting.get_string("current-profile")
+
+PROFILE = get_current_profile()
 
 class Key:
     def __init__(self,  schema_id, name, value_type, default, summary, description, value=None):
@@ -18,7 +22,7 @@ class Key:
         self.description = description
         self.value = value
         self.plugin_name = self.schema_id.split('.')[-1]
-        self.path = "/org/compiz/profiles/%s/plugins/%s" % (PROFILE, self.plugin_name)
+        self.path = "/org/compiz/profiles/%s/plugins/%s/" % (PROFILE, self.plugin_name)
 
     def _get_setting(self):
         setting = Gio.Settings.new_with_path(self.schema_id, self.path)
@@ -125,6 +129,7 @@ class McmWindow(Gtk.Window):
         return box
 
 if __name__ == "__main__":
+    print("Loading profile: %s" % PROFILE)
     win = McmWindow()
     win.connect("delete-event", Gtk.main_quit)
     win.show_all()
