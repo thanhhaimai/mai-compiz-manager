@@ -25,7 +25,7 @@
 /usr/share/glib-2.0/schemas/org.compiz.gnomecompat.gschema.xml
 /usr/share/glib-2.0/schemas/org.compiz.grid.gschema.xml
 /usr/share/glib-2.0/schemas/org.compiz.gschema.xml
-/usr/share/glib-2.0/schemas/org.compiz.gwd.gschema.xml
+# /usr/share/glib-2.0/schemas/org.compiz.gwd.gschema.xml
 /usr/share/glib-2.0/schemas/org.compiz.imgjpeg.gschema.xml
 /usr/share/glib-2.0/schemas/org.compiz.imgpng.gschema.xml
 /usr/share/glib-2.0/schemas/org.compiz.imgsvg.gschema.xml
