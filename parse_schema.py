@@ -5,7 +5,7 @@ class Key(namedtuple('Key', ['schema_id', 'name', 'value_type', 'default',
                              'summary', 'description'])):
     def __new__(cls, schema_id, name, value_type, default, summary='empty',
                 description='empty'):
-        return super(Key, cls).__new__(cls, schema, name, value_type, default,
+        return super(Key, cls).__new__(cls, schema_id, name, value_type, default,
                                        summary, description)
 
 def get_all_schema_roots():
