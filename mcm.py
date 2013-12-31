@@ -1,4 +1,29 @@
 #!/usr/bin/python3
+# mcm
+
+# Description:
+#   A simple replacement for CompizConfig Settings Manager (ccsm)
+# Dependencies:
+#   python 3+
+
+USAGE = \
+'''mcm - A simple replacement for CompizConfig Settings Manager (ccsm)
+
+Usage:  mcm [option]...
+        mcm [option] [path]...
+
+Import/Export options (TO BE IMPLEMENTED):
+  -i, --import                                  Import the compiz settings from a file.
+  -e, --export                                  Export the current compiz settings to a file.
+
+If a path is NOT given following these commands a file dialog will be spawned to select one.
+
+Application options:
+  -v, --version                                 Print version
+'''
+
+__author__ = "Thanh Hai Mai (thanhhaipmai at gmail)"
+__version__ = "0.1.0"
 
 # TODO(thanhhaimai): use Glade MCV
 
