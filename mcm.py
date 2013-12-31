@@ -21,22 +21,32 @@ class Key:
 
     def _get_setting(self):
         # example: org.compiz.core:/org/compiz/profiles/Mai/plugins/core/
-        return Gio.Settings.new_with_path(self.schema_id,
-                                          "/org/compiz/profiles/%s/plugins/%s"
-                                          % (PROFILE, self.plugin_name))
+        try:
+            path = "/org/compiz/profiles/%s/plugins/%s" % (PROFILE, self.plugin_name)
+            print("Accessing setting: %s:%s %s" % (self.schema_id, path, self.name))
+            setting = Gio.Settings.new_with_path(self.schema_id, path)
+            return setting
+        except Exception as e:
+            print(str(e))
+            return None
 
     def set_value(self, value):
         try:
             gvariant = Gio.Variant.parse(self.value_type, value, None, None)
             self._get_setting().set_value(gvariant)
             self.value = value
-        except:
+        except Exception as e:
+            print(str(e))
             print("Unparsable value: %s" % value)
 
     def get_value(self):
         if not self.value:
-            gvariant = self._get_setting().get_value(self.name)
-            self.value = gvariant.print_(self.value_type)
+            setting = self._get_setting()
+            if setting:
+                gvariant = setting.get_value(self.name)
+                self.value = gvariant.print_(self.value_type)
+            else:
+                return "<ERROR>"
 
         return self.value
 
@@ -44,7 +54,8 @@ def get_all_schema_roots():
     roots = []
     with open("./compiz_schemas") as infile:
         for line in infile:
-            roots.append(ET.parse(line.strip()).getroot())
+            if not line.startswith("#"):
+                roots.append(ET.parse(line.strip()).getroot())
 
     return roots
 
@@ -53,6 +64,9 @@ def parse_schema(root):
     schemas = root.findall('schema')
     for schema in schemas:
         schema_id = schema.attrib['id']
+        if schema_id == "org.compiz":
+            continue
+
         keys = schema.findall('key')
         for key in keys:
             value_type = key.attrib['type']
@@ -76,6 +90,7 @@ def parse_child_text(node, name, default):
 class McmWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Mai Compiz Manager")
+        self.maximize()
 
         frame = Gtk.ScrolledWindow()
         self.add(frame)
@@ -95,6 +110,8 @@ class McmWindow(Gtk.Window):
     def makeKeyRow(self, key):
         box = Gtk.Box(spacing=6)
 
+        value = key.get_value()
+
         schema_label = Gtk.Label(key.schema_id)
         box.pack_start(schema_label, False, False, 0)
 
@@ -102,8 +119,11 @@ class McmWindow(Gtk.Window):
         box.pack_start(name_label, False, False, 0)
 
         value_entry = Gtk.Entry()
-        value_entry.set_text(key.default)
+        value_entry.set_text(value)
         box.pack_start(value_entry, False, False, 0)
+
+        default_label = Gtk.Label(key.default)
+        box.pack_start(default_label, False, False, 0)
 
         return box
 
