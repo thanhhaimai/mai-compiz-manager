@@ -2,7 +2,7 @@
 
 # TODO(thanhhaimai): use Glade MCV
 
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, GLib
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 
@@ -18,26 +18,20 @@ class Key:
         self.description = description
         self.value = value
         self.plugin_name = self.schema_id.split('.')[-1]
+        self.path = "/org/compiz/profiles/%s/plugins/%s" % (PROFILE, self.plugin_name)
 
     def _get_setting(self):
-        # example: org.compiz.core:/org/compiz/profiles/Mai/plugins/core/
-        try:
-            path = "/org/compiz/profiles/%s/plugins/%s" % (PROFILE, self.plugin_name)
-            print("Accessing setting: %s:%s %s" % (self.schema_id, path, self.name))
-            setting = Gio.Settings.new_with_path(self.schema_id, path)
-            return setting
-        except Exception as e:
-            print(str(e))
-            return None
+        setting = Gio.Settings.new_with_path(self.schema_id, self.path)
+        return setting
 
     def set_value(self, value):
-        try:
-            gvariant = Gio.Variant.parse(self.value_type, value, None, None)
-            self._get_setting().set_value(gvariant)
-            self.value = value
-        except Exception as e:
-            print(str(e))
-            print("Unparsable value: %s" % value)
+        print("Writing value for %s:%s %s %s" % (self.schema_id, self.path, self.name, value))
+        setting = self._get_setting()
+        gvariant = setting.get_value(self.name)
+        new_value = GLib.Variant.parse(gvariant.get_type(), value, None, None)
+        self._get_setting().set_value(self.name, new_value)
+        self.value = None
+        print("Wrote value: %s" % self.get_value())
 
     def get_value(self):
         if not self.value:
@@ -120,9 +114,12 @@ class McmWindow(Gtk.Window):
 
         value_entry = Gtk.Entry()
         value_entry.set_text(value)
+        value_entry.connect("activate", lambda entry:
+                            key.set_value(entry.get_text()))
         box.pack_start(value_entry, False, False, 0)
 
         default_label = Gtk.Label(key.default)
+        default_label.set_selectable(True)
         box.pack_start(default_label, False, False, 0)
 
         return box
