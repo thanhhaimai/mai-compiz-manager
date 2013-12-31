@@ -1,9 +1,44 @@
 #!/usr/bin/python3
-from gi.repository import Gtk
+
+# TODO(thanhhaimai): use Glade MCV
+
+from gi.repository import Gtk, Gio
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 
-Key = namedtuple('Key', ['schema_id', 'name', 'value_type', 'default', 'summary', 'description'])
+PROFILE = 'Mai'
+
+class Key:
+    def __init__(self,  schema_id, name, value_type, default, summary, description, value=None):
+        self.schema_id = schema_id
+        self.name = name
+        self.value_type = value_type
+        self.default = default
+        self.summary = summary
+        self.description = description
+        self.value = value
+        self.plugin_name = self.schema_id.split('.')[-1]
+
+    def _get_setting(self):
+        # example: org.compiz.core:/org/compiz/profiles/Mai/plugins/core/
+        return Gio.Settings.new_with_path(self.schema_id,
+                                          "/org/compiz/profiles/%s/plugins/%s"
+                                          % (PROFILE, self.plugin_name))
+
+    def set_value(self, value):
+        try:
+            gvariant = Gio.Variant.parse(self.value_type, value, None, None)
+            self._get_setting().set_value(gvariant)
+            self.value = value
+        except:
+            print("Unparsable value: %s" % value)
+
+    def get_value(self):
+        if not self.value:
+            gvariant = self._get_setting().get_value(self.name)
+            self.value = gvariant.print_(self.value_type)
+
+        return self.value
 
 def get_all_schema_roots():
     roots = []
@@ -61,20 +96,13 @@ class McmWindow(Gtk.Window):
         box = Gtk.Box(spacing=6)
 
         schema_label = Gtk.Label(key.schema_id)
-        # schema_label.set_selectable(True)
+        box.pack_start(schema_label, False, False, 0)
 
         name_label = Gtk.Label(key.name)
-        # name_label.set_selectable(True)
+        box.pack_start(name_label, False, False, 0)
 
         value_entry = Gtk.Entry()
         value_entry.set_text(key.default)
-
-        assert(schema_label != None)
-        assert(name_label != None)
-        assert(value_entry != None)
-
-        box.pack_start(schema_label, False, False, 0)
-        box.pack_start(name_label, False, False, 0)
         box.pack_start(value_entry, False, False, 0)
 
         return box
